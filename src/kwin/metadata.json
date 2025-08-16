@@ -1,0 +1,16 @@
+{
+    "KPlugin": {
+        "Id": "io.github.berrylium0078.workspace_daemon",
+        "Name": "Workspace Daemon",
+        "Description": "Monitors activities/virtual desktops switch, and watches & moves windows between them",
+        "Version": "1.0",
+        "License": "GPL",
+        "Authors": [
+            {
+                "Name": "berrylium0078",
+                "Email": "nekonetro@gmail.com"
+            }
+        ],
+        "EnabledByDefault": true
+    }
+}

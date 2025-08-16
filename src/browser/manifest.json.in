@@ -1,0 +1,20 @@
+{
+    "manifest_version": 3,
+    "name": "Plasma Desktop Fix",
+    "version": "@PROJECT_VERSION@",
+    "icons": {
+        "48": "assets/icon.svg"
+    },
+    
+    "description": "Create new tabs on current desktop",
+
+    "background": {
+        "scripts": ["background.js"]
+    },
+    "permissions": ["nativeMessaging", "sessions"],
+    "browser_specific_settings": {
+        "gecko": {
+            "id": "plasma-desktop-fix@berrylium"
+        }
+    }
+}

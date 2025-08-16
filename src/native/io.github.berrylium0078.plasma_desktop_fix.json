@@ -1,0 +1,7 @@
+{
+    "name": "io.github.berrylium0078.plasma_desktop_fix",
+    "description": "Communicate with KWin plugin",
+    "path": "/usr/bin/firefox-extension-plasma-desktop-fix",
+    "type": "stdio",
+    "allowed_extensions": ["plasma-desktop-fix@berrylium"]
+}
