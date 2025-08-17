@@ -17,11 +17,13 @@ async function main() {
         const tid = tab.id;
         const wid = tab.windowId;
         if (tid === undefined || wid === undefined) return;
-        //console.log(`new tab ${tid} in ${wid}`);
+        console.log(`new tab ${tid} in ${wid} at ${currentActivity} ${currentDesktop}`);
 
         const window = workspace.windowByID.get(wid) || new WindowData(workspace, { kind: "present", wid: wid });
 
-        if (await window.is_restored.wait()) return;
+        // TODO select a better name
+        if (await browser.sessions.getTabValue(tid, "restored") !== undefined) return;
+        browser.sessions.setTabValue(tid, "restored", "true");
         // TODO Can we assume that new windows are always on the current desktop & activity?
         await window.desktops.wait();
         await window.activities.wait();
@@ -34,7 +36,7 @@ async function main() {
         });
 
         if (target === undefined) {
-            //console.log(`creating window`);
+            console.log(`creating window for tab ${tid}`);
             const window = new WindowData(workspace, {
                 kind: "future",
                 wid: browser.windows.create({ tabId: tid }).then((window) => window.id!),
@@ -45,12 +47,13 @@ async function main() {
             native.call("switchToActivityDesktop", currentActivity, currentDesktop);
         } else {
             const widnew = await target.wid.wait();
-            //console.log(`moving to ${widnew}`)
-            browser.tabs.move(tid, {
+            console.log(`moving tab ${tid} to window ${widnew}`)
+            browser.windows.update(widnew, { focused: true });
+            await browser.tabs.move(tid, {
                 windowId: widnew,
                 index: -1,
             });
-            browser.windows.update(widnew, { focused: true });
+            browser.tabs.update(tid, { active: true });
         }
         // TODO Should we add timeout before switching?
     })

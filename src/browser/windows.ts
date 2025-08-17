@@ -11,6 +11,7 @@ export class Workspace {
     // current Desktop & Activity
     desktop: Stable<string>;
     activity: Stable<string>;
+    // TODO: select a better name
     readonly Storage = "pos";
     id_count = 0;
 
@@ -72,7 +73,6 @@ type WindowInitializeData =
     { kind: "present"; wid: number; } |
     { kind: "future"; wid: Promise<number>; desktops: string[]; activities: string[] };
 
-
 export class WindowData {
     context: Workspace;
 
@@ -80,7 +80,6 @@ export class WindowData {
     uuid: Future<string>;
     desktops: Future<Set<string>>;
     activities: Future<Set<string>>;
-    is_restored: Future<boolean>;
 
     async getUUID() {
         let uniquePreface = crypto.randomUUID();
@@ -90,6 +89,8 @@ export class WindowData {
         while (uuid === "00000000-0000-0000-0000-000000000000") {
             uniquePreface = crypto.randomUUID();
             await browser.windows.update(wid, { titlePreface: uniquePreface });
+            // TODO add timeout
+            // Should we throw an exception after too many trials?
             uuid = await this.context.native.call("claimWindow", uniquePreface);
         }
         browser.windows.update(wid, { titlePreface: "" });
@@ -97,12 +98,14 @@ export class WindowData {
     }
     saveStorage() {
         let wid = this.wid.get();
-        let desktops = this.desktops.get();
-        let activities = this.activities.get();
-        if (wid !== undefined && desktops !== undefined && activities !== undefined) {
-            //console.log("saving data...");
+        let desktops_s = this.desktops.get();
+        let activities_s = this.activities.get();
+        if (wid !== undefined && desktops_s !== undefined && activities_s !== undefined) {
+            let desktops = Array.from(desktops_s);
+            let activities = Array.from(activities_s);
+            console.log(`saving ${wid} ${activities} ${desktops}`);
             browser.sessions.setWindowValue(wid, this.context.Storage,
-                { A: Array.from(activities), D: Array.from(desktops) } as StorageFormat);
+                { A: activities, D: desktops } as StorageFormat);
         }
     }
     async getStorage() {
@@ -140,18 +143,18 @@ export class WindowData {
             context.updateMapWID(this);
             this.desktops = new Future(new Set(data.desktops));
             this.activities = new Future(new Set(data.activities));
-            this.is_restored = new Future(false);
         } else {
             context.windowByID.set(data.wid, this);
             const storage_p = this.getStorage();
-            this.is_restored = new Future(storage_p.then((data) => data !== undefined));
             this.desktops = new Future(this.getDesktops(storage_p));
             this.activities = new Future(this.getActivities(storage_p));
-            storage_p.then((data) => {
-                if (data !== undefined)
-                    this.move(data.A, data.D);
+            storage_p.then((pos) => {
+                console.log(`restoring window ${data.wid}: ${pos?.A} ${pos?.D}`)
+                if (pos !== undefined)
+                    this.move(pos.A, pos.D);
             });
         }
+        Promise.all([this.desktops.wait(), this.activities.wait()]).then(() => this.saveStorage());
     }
 };
 

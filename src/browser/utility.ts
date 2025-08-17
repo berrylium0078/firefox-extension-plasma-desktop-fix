@@ -1,3 +1,4 @@
+/** expose resolve() and reject() of a Promise */
 export class Deferred<T> {
     promise: Promise<T>;
     reject!: (reason?: any) => void;
@@ -11,6 +12,7 @@ export class Deferred<T> {
     }
 };
 
+/** A "stable" value waits for $timeout ms before changing its value. */
 export class Stable<T> {
     private value: T;
     private timer?: number;
@@ -32,6 +34,7 @@ export class Stable<T> {
     }
 };
 
+/** A simple wrapper of Promise. You can read & write the value after the promise is fulfilled. */
 export class Future<T> {
     private value?: T;
     private promise: Promise<T>;

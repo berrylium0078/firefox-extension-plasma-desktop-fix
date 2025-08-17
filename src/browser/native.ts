@@ -1,10 +1,10 @@
 import { Deferred } from "./utility"
 
 type Signals = {
-    windowDesktopsChanged: [string, string[]],
-    windowActivitiesChanged: [string, string[]],
-    activityChanged: [string],
-    desktopChanged: [string],
+    windowDesktopsChanged: (window_uuid: string, desktop_ids: string[]) => void,
+    windowActivitiesChanged: (window_uuid: string, activity_uuids: string[]) => void,
+    activityChanged: (activity_uuid: string) => void,
+    desktopChanged: (desktop_id: string) => void,
 };
 
 type Methods = {
@@ -18,39 +18,33 @@ type Methods = {
     claimWindow: (window_caption_prefix: string) => string,
 };
 
+type SignalHandler = (...params: Parameters<Signals[keyof Signals]>) => void;
 type MethodParams = { [method in keyof Methods]: Parameters<Methods[method]>; };
 type MethodResults = { [method in keyof Methods]: ReturnType<Methods[method]>; };
 
 type MessageSignalEmitted =
-    { [m in keyof Signals]: { signal: m, params: Signals[m] }; }[keyof Signals];
+    { [m in keyof Signals]: { signal: m, params: Parameters<Signals[m]> }; }[keyof Signals];
 type MessageMethodSuccess =
     { [m in keyof Methods]: { result: MethodResults[m], id: number }; }[keyof Methods];
 type MessageMethodFailure =
     { error: any, id: number };
 type MessageMethodReturned = MessageMethodSuccess | MessageMethodFailure;
 
+/** Establish a connection to the native messaging host */
 export class NativeConnection {
     private port: browser.runtime.Port;
     private transmissionId = 1;
     private handlers = new Map() as Map<number, (msg: MessageMethodReturned) => void>;
-    private eventListeners = new Map() as Map<keyof Signals, ((...params: Signals[keyof Signals]) => void)[]>;
+    private eventListeners = new Map() as Map<keyof Signals, SignalHandler[]>;
 
     constructor(nativeName: string) {
         this.port = browser.runtime.connectNative(nativeName);
         this.port.onMessage.addListener((msg: any) => this.callback(msg));
     }
 
-    public registerListener<S extends keyof Signals>(signal: S, listener: (...params: Signals[S]) => void) {
-        let listeners = this.eventListeners.get(signal);
-        if (listeners)
-            listeners.push(listener as any);
-        else
-            this.eventListeners.set(signal, [listener as any]);
-    }
-
     private callback(msg: MessageSignalEmitted | MessageMethodReturned) {
         // TODO safety checks?
-        //console.log("received", msg);
+        console.log("received", msg);
         if ("debug" in msg) {
             return;
         }
@@ -66,10 +60,18 @@ export class NativeConnection {
         }
     }
 
+    public registerListener<S extends keyof Signals>(signal: S, listener: Signals[S]) {
+        let listeners = this.eventListeners.get(signal);
+        if (listeners)
+            listeners.push(listener as any);
+        else
+            this.eventListeners.set(signal, [listener as any]);
+    }
+
     public call<M extends keyof Methods>(method: M, ...params: MethodParams[M]): Promise<MethodResults[M]> {
         let id = this.transmissionId++;
         let message = { method: method, params: params, id: id };
-        //console.log("sent", message);
+        console.log("sent", message);
 
         this.port.postMessage(message);
 
