@@ -9,15 +9,18 @@
 
 Opening a link when then last focused window is on another desktop:
 
-https://github.com/user-attachments/assets/bda0190b-659b-4d2f-a8ec-85d54deffeea
+
+https://github.com/user-attachments/assets/a5ed718c-a686-450c-aade-1fdfd9079281
 
 Extension off:
 
-https://github.com/user-attachments/assets/0cff7e86-6a0e-43bf-93ec-42dffeb6f43b
+
+https://github.com/user-attachments/assets/c61a045e-dbac-44d7-a0d1-c2d9439a1c9d
 
 Restore a window:
 
-https://github.com/user-attachments/assets/5d194324-c3cf-4cac-9a58-e649687dcccc
+
+https://github.com/user-attachments/assets/b4d6f18a-439e-4ff5-8810-df74476a9efb
 
 ## Architecture
 
